@@ -1,16 +1,23 @@
-from flask import Flask
-from threading import Thread
-import os
 import asyncio
-import nest_asyncio
-from telegram import Update
-from telegram import constants
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from openai import OpenAI
-from duckduckgo_search import DDGS as ddg
-import requests
-import re
 import json
+import os
+import re
+from threading import Thread
+
+import nest_asyncio
+import requests
+from duckduckgo_search import DDGS as ddg
+from flask import Flask
+from openai import OpenAI
+from telegram import Update, constants
+from telegram.error import TelegramError
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 groq_api = os.environ['GROQ']
 temp = 'key'
@@ -280,11 +287,11 @@ async def txt_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text=msg_to_send,
                 parse_mode=constants.ParseMode.HTML
             )
-            success.append(recipient)
-        except Exception as e:
+            success.append(recipient if recipient.startswith("@") else f"@{recipient}")
+        except TelegramError as e:
             failed.append(f"{recipient} ({e})")
 
-    report = f"✅ Sent to: {', '.join(success)}\n"
+    report = f"✅ Message sent successfully to: {', '.join(success) if success else 'no recipients'}\n"
     if failed:
         report += "❌ Failed to send to:\n" + "\n".join(failed)
 
