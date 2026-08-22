@@ -4,3 +4,4 @@ python-telegram-bot
 openai
 duckduckgo_search
 requests
+python-dotenv

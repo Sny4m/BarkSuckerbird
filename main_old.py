@@ -6,6 +6,7 @@ from threading import Thread
 
 import nest_asyncio
 import requests
+from dotenv import load_dotenv
 from duckduckgo_search import DDGS as ddg
 from flask import Flask
 from openai import OpenAI
@@ -18,6 +19,8 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+load_dotenv()
 
 groq_api = os.environ['GROQ']
 temp = 'key'
