@@ -16,12 +16,12 @@ from telegram.ext import (
 from core.database import active_chats, user_histories
 from utils.formatting import escape_html
 
-BOT = os.environ.get('BOT')
+
 OPENROUTER_MODEL = os.environ.get('MODEL')
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ.get('API_KEY_BA')
+    api_key=os.environ["OPENROUTER"],
 )
 
 
