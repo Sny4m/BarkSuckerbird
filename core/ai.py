@@ -1,3 +1,8 @@
+import os
+
+import nest_asyncio
+import requests
+from openai import OpenAI
 from telegram import Update, constants
 from telegram.error import TelegramError
 from telegram.ext import (
@@ -7,17 +12,16 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-import nest_asyncio
-import requests
-from openai import OpenAI
-import os
-from core.database import user_histories, active_chats
+
+from core.database import active_chats, user_histories
 from utils.formatting import escape_html
 
-BOT = os.environ['BOT']
+BOT = os.environ.get('BOT')
+OPENROUTER_MODEL = os.environ.get('MODEL')
+
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ['API_KEY_BA']
+    api_key=os.environ.get('API_KEY_BA')
 )
 
 
@@ -25,8 +29,12 @@ def get_ai_reply(user_id, input_text):
     user_id = str(user_id)
     history = user_histories.get(user_id, [])
     history.append({"role": "user", "content": input_text})
-    messages = [{"role": "system", "content": os.environ['CONTEXT_AI']}] + history
-    response = client.chat.completions.create(model=os.environ['MODEL'], messages=messages, max_tokens=800)
+    messages = [{"role": "system", "content": os.environ.get('CONTEXT_AI')}] + history
+    response = client.chat.completions.create(
+        model=OPENROUTER_MODEL,
+        messages=messages,
+        max_tokens=800,
+    )
     reply = response.choices[0].message.content.strip()
     history.append({"role": "assistant", "content": reply})
     user_histories[user_id] = history[-50:]

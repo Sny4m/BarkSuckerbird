@@ -9,12 +9,28 @@ from telegram.ext import (
 )
 import nest_asyncio
 import requests
+from ddgs.exceptions import DDGSException
 # imported dggSearch from /source/dgg.py (search.dgg hai)
 from search.ddg import ddgSearch
 from search.ddg import groq
 
 async def web(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = ' '.join(context.args)
-    res = ddgSearch(user_input)
-    reply = groq(res, user_input)
+    if not user_input:
+        await update.message.reply_text("❌ Usage: /web <your search query>")
+        return
+
+    try:
+        res = ddgSearch(user_input)
+        reply = groq(res, user_input)
+    except DDGSException:
+        await update.message.reply_text("❌ DuckDuckGo search failed, try again in a bit.")
+        return
+    except requests.RequestException:
+        await update.message.reply_text("❌ The AI service didn't respond, try again in a bit.")
+        return
+    except (KeyError, IndexError):
+        await update.message.reply_text("❌ Got a weird response back, try again.")
+        return
+
     await update.message.reply_text(reply)

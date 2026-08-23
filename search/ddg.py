@@ -1,10 +1,10 @@
-from ddgs import DDGS as ddg
-from openai import OpenAI
-import requests
 import os
 
-groq_api = os.environ.get['GROQ_API']
-groq_model = os.environ.get['GROQ_MODEL']
+import requests
+from ddgs import DDGS as ddg
+
+groq_api = os.environ.get('GROQ')
+
 
 
 
@@ -52,7 +52,7 @@ Return your final answer in a small paragraph no markdown no bullet points no ci
 
 '''
     payload = {
-        "model": groq_model,
+        "model": "openai/gpt-oss-20b",
         "messages": [
             {"role": "system", "content": f"{context}"},
             {"role": "user", "content": f"Question: {user_input}\nSearch Results:\n{data}"}
@@ -60,16 +60,20 @@ Return your final answer in a small paragraph no markdown no bullet points no ci
         "max_tokens": 500
     }
 
-    response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
-
-    # print("API Response:", response.json()) FOR TESTING ONLY
+    response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers=headers,
+        json=payload,
+        timeout=30
+    )
+    response.raise_for_status()
 
     return response.json()["choices"][0]["message"]["content"]
 
 
 # js for testing
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     test_query = "Python programming"
     print(f"Testing search for: '{test_query}'\n")
     output = ddgSearch(test_query)
