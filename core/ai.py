@@ -21,7 +21,7 @@ OPENROUTER_MODEL = os.environ.get('MODEL')
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ["OPENROUTER"],
+    api_key=os.environ.get("OPENROUTER"),
 )
 
 
