@@ -1,20 +1,16 @@
+import asyncio
+import logging
 import os
 
-import nest_asyncio
-import requests
 from openai import OpenAI
-from telegram import Update, constants
-from telegram.error import TelegramError
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
+from telegram import Update
+from telegram.constants import ChatAction
+from telegram.ext import ContextTypes
 
 from core.database import active_chats, user_histories
 from utils.formatting import escape_html
+
+logger = logging.getLogger(__name__)
 
 OPENROUTER_MODEL = os.environ.get('MODEL')
 
@@ -40,6 +36,16 @@ def get_ai_reply(user_id, input_text):
     return reply
 
 
+async def _keep_typing(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
+    # Telegram's typing indicator only lasts ~5s, so keep refreshing it
+    # while the AI request is in flight.
+    try:
+        while True:
+            await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+            await asyncio.sleep(4)
+    except asyncio.CancelledError:
+        pass
+
 
 async def ai_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
@@ -49,8 +55,23 @@ async def ai_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
     user_id = update.effective_user.id
     ai_input = logic(user_input)
-    response = get_ai_reply(user_id, ai_input)
+
+    typing_task = asyncio.create_task(_keep_typing(context, chat.id))
+    try:
+        response = await asyncio.to_thread(get_ai_reply, user_id, ai_input)
+    except Exception:
+        logger.exception("AI reply failed for user %s", user_id)
+        typing_task.cancel()
+        await update.message.reply_text(
+            "<b>⚠️ AI is having trouble responding right now, try again in a bit.</b>",
+            parse_mode="HTML",
+        )
+        return
+    finally:
+        typing_task.cancel()
+
     await update.message.reply_text(escape_html(response), parse_mode="HTML", reply_to_message_id=update.message.message_id)
+
 
 def logic(input: str):
     return input.replace('/pyai', '').replace('pyai', '').strip()
