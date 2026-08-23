@@ -16,7 +16,6 @@ from telegram.ext import (
 from core.database import active_chats, user_histories
 from utils.formatting import escape_html
 
-
 OPENROUTER_MODEL = os.environ.get('MODEL')
 
 client = OpenAI(
