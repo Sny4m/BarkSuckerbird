@@ -13,10 +13,18 @@ from utils.formatting import escape_html
 logger = logging.getLogger(__name__)
 
 OPENROUTER_MODEL = os.environ.get('MODEL')
+OPENROUTER_KEY = os.environ.get('OPENROUTER')
+
+if not OPENROUTER:
+    logger.error("OPENROUTER env var is not set - AI chat will fail on every message.")
+if not MODEL:
+    logger.error("MODEL env var is not set - AI chat will fail on every message.")
+if not os.environ.get('CONTEXT_AI'):
+    logger.warning("CONTEXT_AI env var is not set - AI will run with no system prompt.")
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ.get("OPENROUTER"),
+    api_key=OPENROUTER,
 )
 
 
