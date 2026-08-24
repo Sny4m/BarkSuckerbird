@@ -1,5 +1,5 @@
 def escape_html(text):
-    # List of characters to escape for HTML formatting
+    # telegram markdown ke liye
     html_escape_map = {
         "&": "&amp;",
         "<": "&lt;",

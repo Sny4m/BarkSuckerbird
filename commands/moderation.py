@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import logging
 
 from telegram import Update, constants
 from telegram.error import TelegramError
@@ -125,3 +126,26 @@ async def revoke_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         authorized_users.remove(username)
         await update.message.reply_text(f"✅ Revoked @{username} from /txt access.")
+
+
+# Enable logging to see background information in the console
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    level=logging.INFO
+)
+
+async def log_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """This function triggers whenever the bot receives a message in a group."""
+    message = update.message
+    user = message.from_user
+    chat = message.chat
+
+    print("\n--- NEW MESSAGE RECEIVED ---")
+    print(f"Group/Chat Name: {chat.title} (ID: {chat.id})")
+    print(f"Sender Name:    {user.full_name}")
+    print(f"Sender User ID: {user.id}")  # <-- This is the User ID you are looking for
+    print(f"Message Text:   '{message.text}'")
+    print("----------------------------\n")
+
+
+

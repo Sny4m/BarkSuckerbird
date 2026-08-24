@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from flask import Flask
 from telegram.error import Conflict
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
-
+import logging
+from commands.moderation import log_group_message
 load_dotenv()
 
 from commands.cbot import chat_command, reset, stop
@@ -58,6 +59,10 @@ def main():
 
     # Only registers non command txts
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_reply))
+
+    # logger
+    group_filter = filters.ChatType.GROUPS | filters.ChatType.SUPERGROUP
+    app.add_handler(MessageHandler(filters.TEXT & group_filter, log_group_message))
 
     app.add_error_handler(error_handler)
 
