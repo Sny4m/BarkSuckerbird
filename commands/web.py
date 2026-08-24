@@ -13,6 +13,9 @@ from ddgs.exceptions import DDGSException
 # imported dggSearch from /source/dgg.py (search.dgg hai)
 from search.ddg import ddgSearch
 from search.ddg import groq
+import asyncio
+
+# Used asyncio because groq is taking some time to respond!!!!!!!!!!!!
 
 async def web(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = ' '.join(context.args)
@@ -21,8 +24,8 @@ async def web(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        res = ddgSearch(user_input)
-        reply = groq(res, user_input)
+        res = await asyncio.to_thread(ddgSearch, user_input)
+        reply = await asyncio.to_thread(groq, res, user_input)
     except DDGSException:
         await update.message.reply_text("❌ DuckDuckGo search failed, try again in a bit.")
         return
